@@ -1,0 +1,12 @@
+[Unit]
+Description=Esegue duckdns-update ogni 5 minuti
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Persistent=true
+Unit=duckdns.service
+
+[Install]
+WantedBy=timers.target

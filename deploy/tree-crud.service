@@ -1,0 +1,17 @@
+[Unit]
+Description=Tree CRUD (Python http.server su 127.0.0.1:8080)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/tree-crud
+ExecStart=/usr/bin/python3 /opt/tree-crud/tree-crud.py
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

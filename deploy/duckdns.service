@@ -1,0 +1,32 @@
+[Unit]
+Description=Aggiorna il record A su DuckDNS
+Documentation=https://www.duckdns.org/spec.jsp
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/duckdns-update.sh
+
+# Hardening: nessun accesso a home, /tmp privato, filesystem in sola lettura,
+# nessuna capability, solo rete IPv4/IPv6.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0077
