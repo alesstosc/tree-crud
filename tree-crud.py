@@ -52,8 +52,10 @@ input[type=file]{display:none}
 <input type="file" id="fin" accept=".json" onchange="importFile(event)">
 <span class="sep"></span>
 <button onclick="exportJSON()">Export JSON</button>
+<button onclick="exportMD()">Export MD</button>
 <button onclick="iaRulesOpen()">Regole Tree</button>
 <button onclick="iaOpen()">IA</button>
+<button onclick="infoOpen()">Info</button>
 <span class="fill"></span>
 <span id="msg"></span>
 </header>
@@ -201,6 +203,43 @@ function exportJSON(){
  var u=URL.createObjectURL(b),a=document.createElement("a");
  a.href=u;a.download=nm+".json";a.click();URL.revokeObjectURL(u);
  msg("JSON esportato: "+nm+".json")
+}
+
+function mdText(s){
+ return String(s==null?"":s).replace(/\r?\n/g," ").replace(/[ \t]+/g," ").trim();
+}
+function mdBullet(node, level){
+ var ind="  ".repeat(level);
+ var out=ind+"- "+mdText(node.t)+"\n";
+ var note=String(node.n==null?"":node.n).trim();
+ if(note)out+=ind+"  "+note.replace(/\r?\n/g,"\n"+ind+"  ")+"\n";
+ for(var i=0;(node.c||[]).length>i;i++)out+=mdBullet(node.c[i], level+1);
+ return out;
+}
+function mdNodes(list, depth){
+ var out="";
+ for(var i=0;(list||[]).length>i;i++){
+  var node=list[i];
+  if(depth<6){
+   out+="\n"+"#".repeat(depth+1)+" "+mdText(node.t)+"\n\n";
+   var note=String(node.n==null?"":node.n).trim();
+   if(note)out+=note+"\n\n";
+   out+=mdNodes(node.c||[], depth+1);
+  }else{
+   out+=mdBullet(node, 0)+"\n";
+  }
+ }
+ return out;
+}
+function exportMD(){
+ var nm=prompt("Nome file:",jn||"progetto");if(!nm)return;
+ jn=nm;
+ var md=mdNodes(D,0);
+ md=md.replace(/\n{3,}/g,"\n\n").trim()+"\n";
+ var b=new Blob([md],{type:"text/markdown;charset=utf-8"});
+ var u=URL.createObjectURL(b),a=document.createElement("a");
+ a.href=u;a.download=nm+".md";a.click();URL.revokeObjectURL(u);
+ msg("Markdown esportato: "+nm+".md")
 }
 
 function cntAll(a){var c=0;for(var i=0;i<a.length;i++){c+=1;if(a[i].c)c+=cntAll(a[i].c)}return c}
@@ -529,6 +568,12 @@ function iaRulesReset(){
   try { localStorage.removeItem(IA_RULESSTORE); } catch(e) {}
   document.getElementById("ia-rules-status").textContent = "Regole default ripristinate.";
 }
+function infoOpen(){
+  document.getElementById("info").style.display = "flex";
+}
+function infoClose(){
+  document.getElementById("info").style.display = "none";
+}
 
 </script>
 
@@ -550,6 +595,10 @@ function iaRulesReset(){
 .item.dragging{opacity:.45}
 .item.drop-before{box-shadow:inset 0 3px 0 0 #2d7ff9}
 .item.drop-after{box-shadow:inset 0 -3px 0 0 #2d7ff9}
+.info-body h3{font-size:14px;margin:14px 0 4px;color:#1a1a2e}
+.info-body p{font-size:13px;line-height:1.55;color:#444;margin:0 0 8px}
+.info-body code{background:#f3f3f3;padding:1px 5px;border-radius:4px;font-size:12px}
+.info-body .warn{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 12px}
 .ia-row textarea{flex:1;width:100%;min-height:220px;padding:8px;border:1px solid #ccc;border-radius:6px;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}
 </style>
 <div id="ia" class="ia-wrap">
@@ -611,6 +660,24 @@ function iaRulesReset(){
       <button onclick="iaRulesSave()">Salva regole</button>
       <button onclick="iaRulesReset()">Ripristina default</button>
       <span id="ia-rules-status" class="ia-hint"></span>
+    </div>
+  </div>
+</div>
+
+<div id="info" class="ia-wrap">
+  <div class="ia-box">
+    <div class="ia-head">
+      <strong>Tree CRUD — panoramica</strong>
+      <button onclick="infoClose()">Chiudi</button>
+    </div>
+    <div class="info-body">
+      <h3>Cosa fa Tree CRUD</h3>
+      <p>App single-file per creare e organizzare alberi gerarchici: progetti, tassonomie, piani, indici. Ogni nodo ha un titolo e delle note; puoi aggiungere figli e fratelli, riordinare i rami con il drag & drop, importare ed esportare JSON. Il salvataggio è automatico nel browser (localStorage): non servono server né database, basta <code>python3 tree-crud.py</code> e aprire http://localhost:8080.</p>
+      <h3>IA e DeepSeek</h3>
+      <div class="warn"><p style="margin:0"><b>Per renderla realmente operativa serve una API key DeepSeek.</b> I pulsanti «+ Figlio» e «+ Fratello» chiedono all'IA suggerimenti per estendere l'albero, coerenti con le «Regole Tree». Crea la key gratuitamente su <b>platform.deepseek.com</b> (sezione API Keys) e inseriscila nel pannello «IA».</p></div>
+      <p>Senza key l'app resta comunque pienamente utilizzabile in modalità manuale: i nuovi nodi verranno chiesti con una semplice richiesta di testo.</p>
+      <h3>Privacy</h3>
+      <p>La key resta nel tuo browser (localStorage, o solo per la sessione, a tua scelta) e viene inviata esclusivamente all'endpoint DeepSeek. Non passa mai dal server locale e non viene mai scritta sul disco del progetto.</p>
     </div>
   </div>
 </div>
