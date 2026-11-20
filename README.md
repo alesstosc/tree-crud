@@ -26,9 +26,15 @@ Il progetto vive su **https://tree-crud.duckdns.org** (demo pubblica).
   generare i suggerimenti (salvate nel browser).
 - **Drag & drop**: riordino dei rami tra fratelli (stesso livello), gli altri
   nodi scorrono di conseguenza.
+- **Layout responsive**: il divisorio verticale tra l'albero e il pannello
+  titolo/note è **trascinabile** (mouse, dito o frecce da tastiera) e la sua
+  posizione viene ricordata nel browser. Su schermi piccoli il divisorio parte
+  al centro, il menu si dispone su più righe e i campi usano 16px per non far
+  scattare lo zoom automatico di iOS.
 - **Carica JSON / Export JSON**: il progetto si salva e si ricarica per
   continuare il lavoro. L'import è sanitizzato (vedi Sicurezza).
-- Persistenza locale dell'albero (`localStorage`).
+- Persistenza locale dell'albero (`localStorage`) e della larghezza dei
+  pannelli (`treecrud_split`).
 
 ## Architettura
 

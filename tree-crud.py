@@ -12,16 +12,43 @@ HTML = r"""<!DOCTYPE html>
 <title>Tree CRUD</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;background:#f8f9fa;height:100vh;display:flex;flex-direction:column}
-header{background:#1a1a2e;color:#fff;padding:10px 20px;display:flex;gap:8px;align-items:center}
-header .brand{font-weight:700;margin-right:16px}
-header button{background:#16213e;color:#fff;border:1px solid #0f3460;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px}
+body{font-family:system-ui,sans-serif;background:#f8f9fa;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-text-size-adjust:100%}
+header{background:#1a1a2e;color:#fff;padding:10px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;row-gap:6px;flex:0 0 auto}
+header .brand{font-weight:700;margin-right:16px;white-space:nowrap}
+header button{background:#16213e;color:#fff;border:1px solid #0f3460;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;min-height:34px;white-space:nowrap}
 header button:hover{background:#0f3460}
 header .sep{width:1px;height:22px;background:#333;margin:0 6px}
-header .fill{flex:1}
-.main{display:flex;flex:1;overflow:hidden}
-.left{width:380px;min-width:260px;overflow:auto;background:#fff;border-right:1px solid #ddd;padding:12px}
-.right{flex:1;padding:20px;overflow:auto;background:#f8f9fa}
+header .fill{flex:1 1 0}
+.main{display:flex;flex:1;overflow:hidden;min-height:0}
+.left{flex:0 0 auto;width:380px;max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;padding:12px}
+.right{flex:1 1 0;min-width:0;padding:20px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#f8f9fa}
+.gutter{flex:0 0 14px;width:14px;position:relative;cursor:col-resize;touch-action:none;background:#eceff3;border-left:1px solid #dde1e6;border-right:1px solid #dde1e6;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;outline:none}
+.gutter::before{content:"";width:3px;height:40px;border-radius:3px;background:#c6ccd4;transition:background .15s,height .15s}
+.gutter:hover::before,.gutter:focus-visible::before,.gutter.active::before{background:#2d7ff9;height:56px}
+.gutter:hover,.gutter.active{background:#e5eefb}
+body.split-drag{cursor:col-resize;user-select:none;-webkit-user-select:none;touch-action:none}
+@media (max-width:760px){
+ header{padding:8px 10px;gap:6px}
+ header .brand{font-size:15px;margin-right:6px}
+ header button{padding:6px 10px;font-size:12.5px}
+ header .sep{display:none}
+ .left{padding:8px}
+ .right{padding:12px}
+ .fg input,.fg textarea{font-size:16px}
+ ul.tree li>.item{padding:8px;font-size:15px}
+ ul.tree ul{padding-left:16px}
+ .gutter{flex:0 0 16px;width:16px}
+ .gutter::before{height:52px}
+ #msg{font-size:11px;white-space:normal}
+}
+@media (hover:none){
+ header button:hover{background:#16213e}
+ ul.tree li>.item:hover{background:transparent}
+ .gutter:hover,.gutter.active{background:#eceff3}
+ .gutter:hover::before{background:#c6ccd4;height:40px}
+ .gutter.active,.gutter.active:hover{background:#e5eefb}
+ .gutter.active::before,.gutter.active:hover::before{background:#2d7ff9;height:56px}
+}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:4px;text-transform:uppercase}
 .fg input,.fg textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px}
@@ -59,9 +86,10 @@ input[type=file]{display:none}
 <span class="fill"></span>
 <span id="msg"></span>
 </header>
-<div class="main">
+<div class="main" id="main">
 <div class="left" id="tree"></div>
-<div class="right">
+<div class="gutter" id="gutter" role="separator" aria-orientation="vertical" aria-label="Ridimensiona i pannelli" tabindex="0" title="Trascina (o usa le frecce) per spostare il divisorio"></div>
+<div class="right" id="panel">
 <div class="fg">
 <label>Nome nodo</label>
 <input id="ename" oninput="onEdit()" placeholder="Nome...">
@@ -76,6 +104,8 @@ input[type=file]{display:none}
 <script>
 var D=[], cur=null, nid=1, jn="";
 var LS="treecrud";
+var TOUCH_ONLY=false;
+try{TOUCH_ONLY=!!(window.matchMedia&&window.matchMedia("(hover:none) and (pointer:coarse)").matches)}catch(e){}
 
 function load(){
  var s=localStorage.getItem(LS);
@@ -108,7 +138,7 @@ function html(a){
  for(var i=0;i<a.length;i++){
   var x=a[i], hk=x.c&&x.c.length>0;
   var id=parseInt(x.id,10); if(!isFinite(id)) id=0;
-  h+='<li><div class="item" draggable="true" data-id="'+id+'" onclick="sel('+id+')">';
+  h+='<li><div class="item" draggable="'+(TOUCH_ONLY?"false":"true")+'" data-id="'+id+'" onclick="sel('+id+')">';
   h+='<span class="toggle" onclick="event.stopPropagation();tgl(this)">'+(hk?"\u25be":"")+'</span>';
   h+='<span class="label">'+esc(x.t)+'</span>';
   if(hk)h+='<span class="badge">'+cnt(x)+'</span>';
@@ -246,6 +276,82 @@ function cntAll(a){var c=0;for(var i=0;i<a.length;i++){c+=1;if(a[i].c)c+=cntAll(
 function msg(s){var e=document.getElementById("msg");e.textContent=s;setTimeout(function(){e.textContent=""},3000)}
 
 load();
+
+/* --- divisorio trascinabile (albero | note) --- */
+var SPLIT_KEY="treecrud_split", SPLIT_MIN=140, SPLIT_MIN_RIGHT=150, splitWant=380;
+function splitClamp(w){
+ var main=document.getElementById("main");
+ var total=(main&&main.clientWidth)||window.innerWidth||0;
+ var max=Math.max(SPLIT_MIN, total-SPLIT_MIN_RIGHT);
+ w=parseInt(w,10); if(!isFinite(w)) w=SPLIT_MIN;
+ return Math.max(SPLIT_MIN, Math.min(Math.round(w), max));
+}
+function splitSet(w, persist){
+ var left=document.getElementById("tree");
+ if(!left){return}
+ splitWant=w;
+ var v=splitClamp(w);
+ left.style.width=v+"px";
+ if(persist){try{localStorage.setItem(SPLIT_KEY,String(v))}catch(e){}}
+}
+function splitInit(){
+ var saved=null;
+ try{var s=localStorage.getItem(SPLIT_KEY); if(s)saved=parseInt(s,10)}catch(e){}
+ var def=(window.innerWidth<760)?Math.round(window.innerWidth*0.46):380;
+ splitSet((saved&&saved>0)?saved:def,false);
+}
+function splitDragInit(){
+ var g=document.getElementById("gutter");
+ if(!g){return}
+ var dragging=false, startX=0, startW=0, pid=null;
+ function down(e){
+  if(e.pointerType==="mouse" && e.button!==0){return}
+  dragging=true; startX=e.clientX; startW=document.getElementById("tree").getBoundingClientRect().width;
+  g.classList.add("active"); document.body.classList.add("split-drag"); pid=e.pointerId;
+  try{if(g.setPointerCapture&&pid!=null)g.setPointerCapture(pid)}catch(err){}
+  e.preventDefault();
+ }
+ function move(e){
+  if(!dragging){return}
+  splitSet(startW+(e.clientX-startX),false);
+  e.preventDefault();
+ }
+ function up(e){
+  if(!dragging){return}
+  dragging=false; g.classList.remove("active"); document.body.classList.remove("split-drag");
+  try{if(g.releasePointerCapture&&pid!=null)g.releasePointerCapture(pid)}catch(err){}
+  splitSet(splitWant,true); pid=null;
+ }
+ if(window.PointerEvent){
+  g.addEventListener("pointerdown",down);
+  g.addEventListener("pointermove",move);
+  g.addEventListener("pointerup",up);
+  g.addEventListener("pointercancel",up);
+ }else{
+  g.addEventListener("mousedown",function(e){
+   if(e.button!==0){return}
+   dragging=true; startX=e.clientX; startW=document.getElementById("tree").getBoundingClientRect().width;
+   g.classList.add("active"); document.body.classList.add("split-drag"); e.preventDefault();
+  });
+  document.addEventListener("mousemove",function(e){if(dragging){splitSet(startW+(e.clientX-startX),false)}});
+  document.addEventListener("mouseup",function(){
+   if(!dragging){return}
+   dragging=false; g.classList.remove("active"); document.body.classList.remove("split-drag"); splitSet(splitWant,true);
+  });
+ }
+ g.addEventListener("dblclick",function(){splitSet((window.innerWidth<760)?Math.round(window.innerWidth*0.46):380,true)});
+ g.addEventListener("keydown",function(e){
+  var step=e.shiftKey?40:12;
+  if(e.key==="ArrowLeft"||e.key==="Left"){splitSet(splitWant-step,true);e.preventDefault()}
+  else if(e.key==="ArrowRight"||e.key==="Right"){splitSet(splitWant+step,true);e.preventDefault()}
+  else if(e.key==="Home"){splitSet(SPLIT_MIN,true);e.preventDefault()}
+  else if(e.key==="End"){splitSet(1e6,true);e.preventDefault()}
+ });
+ window.addEventListener("resize",function(){splitSet(splitWant,false)});
+ window.addEventListener("orientationchange",function(){splitSet(splitWant,false)});
+ splitInit();
+}
+if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",splitDragInit)}else{splitDragInit()}
 
 var IA_KEYSTORE = "treecrud_deepseek_key";
 var IA_MODELSTORE = "treecrud_deepseek_model";
@@ -578,8 +684,9 @@ function infoClose(){
 </script>
 
 <style>
-.ia-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:999}
-.ia-box{background:#fff;color:#222;width:min(720px,92vw);max-height:86vh;overflow:auto;border-radius:12px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.ia-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:999;padding:10px}
+.ia-box{background:#fff;color:#222;width:min(720px,94vw);max-height:88vh;max-height:88dvh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:12px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+@media (max-width:760px){.ia-box{width:100%;max-width:none;padding:14px;border-radius:10px;max-height:92vh;max-height:92dvh}.ia-row input,.ia-row select{min-width:0}.ia-actions{flex-wrap:wrap}}
 .ia-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .ia-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 .ia-row input,.ia-row select{flex:1;min-width:200px;padding:6px 8px;border:1px solid #ccc;border-radius:6px}
@@ -676,6 +783,8 @@ function infoClose(){
       <h3>IA e DeepSeek</h3>
       <div class="warn"><p style="margin:0"><b>Per renderla realmente operativa serve una API key DeepSeek.</b> I pulsanti «+ Figlio» e «+ Fratello» chiedono all'IA suggerimenti per estendere l'albero, coerenti con le «Regole Tree». Crea la key gratuitamente su <b>platform.deepseek.com</b> (sezione API Keys) e inseriscila nel pannello «IA».</p></div>
       <p>Senza key l'app resta comunque pienamente utilizzabile in modalità manuale: i nuovi nodi verranno chiesti con una semplice richiesta di testo.</p>
+      <h3>Layout e mobile</h3>
+      <p>Il divisorio tra l'albero e il pannello titolo/note è <b>trascinabile</b> (mouse o dito): trascinalo per allargare l'uno o l'altro. La posizione viene ricordata dal browser; <b>doppio click</b> (o <b>doppio tap</b>) riporta la misura di default, e da tastiera si usa <code>Tab</code> + frecce. Su schermi piccoli il divisorio parte al centro, il menu si dispone su più righe e i campi usano caratteri da 16px per evitare lo zoom automatico di iOS.</p>
       <h3>Privacy</h3>
       <p>La key resta nel tuo browser (localStorage, o solo per la sessione, a tua scelta) e viene inviata esclusivamente all'endpoint DeepSeek. Non passa mai dal server locale e non viene mai scritta sul disco del progetto.</p>
     </div>
