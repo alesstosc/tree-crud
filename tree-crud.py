@@ -259,13 +259,16 @@ function exportJSON(){
  msg("JSON esportato: "+nm+".json")
 }
 
+function mdStripTags(s){
+ return String(s==null?"":s).replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]*>/g,"").trim();
+}
 function mdText(s){
- return String(s==null?"":s).replace(/\r?\n/g," ").replace(/[ \t]+/g," ").trim();
+ return mdStripTags(s).replace(/\r?\n/g," ").replace(/[ \t]+/g," ").trim();
 }
 function mdBullet(node, level){
  var ind="  ".repeat(level);
  var out=ind+"- "+mdText(node.t)+"\n";
- var note=String(node.n==null?"":node.n).trim();
+ var note=mdStripTags(node.n);
  if(note)out+=ind+"  "+note.replace(/\r?\n/g,"\n"+ind+"  ")+"\n";
  for(var i=0;(node.c||[]).length>i;i++)out+=mdBullet(node.c[i], level+1);
  return out;
@@ -276,7 +279,7 @@ function mdNodes(list, depth){
   var node=list[i];
   if(depth<6){
    out+="\n"+"#".repeat(depth+1)+" "+mdText(node.t)+"\n\n";
-   var note=String(node.n==null?"":node.n).trim();
+   var note=mdStripTags(node.n);
    if(note)out+=note+"\n\n";
    out+=mdNodes(node.c||[], depth+1);
   }else{
