@@ -57,6 +57,7 @@ body.split-drag{cursor:col-resize;user-select:none;-webkit-user-select:none;touc
 .fg .note-head label{margin-bottom:0}
 .fg .note-head button{font-size:11px;padding:2px 10px;border:1px solid #ccc;border-radius:4px;background:#f3f3f3;cursor:pointer}
 .fg .notes-render{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-height:120px;max-height:320px;overflow:auto;white-space:pre-wrap;background:#fff;word-break:break-word}
+.fg .notes-render:empty:before{content:attr(data-placeholder);color:#999;pointer-events:none}
 .fg input:focus,.fg textarea:focus{border-color:#1a1a2e;outline:none}
 ul.tree{list-style:none;padding-left:0}
 ul.tree ul{list-style:none;padding-left:22px}
@@ -101,10 +102,10 @@ input[type=file]{display:none}
 <div class="fg">
 <div class="note-head">
 <label>Note</label>
-<button type="button" id="enotes-toggle" onclick="noteToggle()">Grafico</button>
+<button type="button" id="enotes-toggle" onclick="noteToggle()">Testo</button>
 </div>
-<textarea id="enotes" oninput="onEdit()" placeholder="Dettagli, requisiti..." rows="8"></textarea>
-<div id="enotes-view" class="notes-render" hidden></div>
+<textarea id="enotes" oninput="onEdit()" placeholder="Dettagli, requisiti..." rows="8" hidden></textarea>
+<div id="enotes-view" class="notes-render" data-placeholder="Dettagli, requisiti..."></div>
 </div>
 <div style="font-size:12px;color:#999" id="epath"></div>
 </div>
@@ -163,7 +164,7 @@ function sel(id){cur=id;render()}
 function find(a,id){for(var i=0;i<a.length;i++){if(a[i].id==id)return a[i];if(a[i].c){var f=find(a[i].c,id);if(f)return f}}return null}
 function parentOf(a,id,p){for(var i=0;i<a.length;i++){if(a[i].id==id)return p;if(a[i].c){var f=parentOf(a[i].c,id,a[i]);if(f)return f}}return null}
 
-var NOTE_MODE="text";
+var NOTE_MODE="view";
 function noteToggle(){
  NOTE_MODE=NOTE_MODE==="text"?"view":"text";
  var ta=document.getElementById("enotes"),vw=document.getElementById("enotes-view"),bt=document.getElementById("enotes-toggle");
