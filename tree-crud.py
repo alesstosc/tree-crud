@@ -56,7 +56,7 @@ body.split-drag{cursor:col-resize;user-select:none;-webkit-user-select:none;touc
 .fg .note-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .fg .note-head label{margin-bottom:0}
 .fg .note-head button{font-size:11px;padding:2px 10px;border:1px solid #ccc;border-radius:4px;background:#f3f3f3;cursor:pointer}
-.fg .notes-render{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-height:120px;max-height:320px;overflow:auto;white-space:pre-wrap;background:#fff;word-break:break-word}
+.fg .notes-render{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-height:120px;overflow:auto;resize:vertical;white-space:pre-wrap;background:#fff;word-break:break-word}
 .fg .notes-render:empty:before{content:attr(data-placeholder);color:#999;pointer-events:none}
 .fg input:focus,.fg textarea:focus{border-color:#1a1a2e;outline:none}
 ul.tree{list-style:none;padding-left:0}
