@@ -70,6 +70,28 @@ ul.tree li>.item .label{flex:1}
 ul.tree li>.item .badge{font-size:10px;color:#999}
 input[type=file]{display:none}
 #msg{font-size:12px;color:#888;margin-left:auto}
+#pdf-view{display:none}
+@media print{
+ @page{size:A4;margin:9mm}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body>*{display:none}
+ #pdf-view{display:block;font-family:system-ui,sans-serif;color:#111;font-size:10.5px;line-height:1.45;background:#fff}
+ #pdf-view .pdf-head{background:#1a1a2e;color:#fff;border-radius:8px;padding:11px 14px;margin-bottom:10px;break-inside:avoid}
+ #pdf-view .pdf-head h1{font-size:17px;margin:0 0 5px}
+ #pdf-view .pdf-head .pdf-note{color:#dfe3ee;white-space:pre-wrap}
+ #pdf-view .pdf-grid{column-count:2;column-gap:10px}
+ #pdf-view .pdf-card{break-inside:avoid;page-break-inside:avoid;border:1px solid #d8dde5;border-radius:8px;margin:0 0 9px;overflow:hidden;background:#fff}
+ #pdf-view .pdf-card-head{color:#fff;padding:5px 9px;font-weight:700;font-size:12px}
+ #pdf-view .pdf-card>.pdf-note{padding:6px 9px 2px}
+ #pdf-view .pdf-sub{margin:5px 9px 6px;padding-left:8px;border-left:2px solid #cfd8e6}
+ #pdf-view .pdf-sub .pdf-sub{margin:3px 0 3px 2px;border-left:1px solid #e3e9f2}
+ #pdf-view .pdf-sub-title{font-weight:700;font-size:10.5px;color:#1a1a2e}
+ #pdf-view .pdf-note{white-space:pre-wrap;word-break:break-word;margin:1px 0 4px}
+ #pdf-view .pdf-note ul,#pdf-view .pdf-note ol{margin:2px 0 4px 18px}
+ #pdf-view .pdf-note code{background:#f1f3f6;padding:0 3px;border-radius:3px;font-size:9.5px}
+ #pdf-view .pdf-note table{border-collapse:collapse;font-size:9.5px}
+ #pdf-view .pdf-note td,#pdf-view .pdf-note th{border:1px solid #ccd3dd;padding:2px 4px}
+}
 </style>
 </head>
 <body>
@@ -85,6 +107,7 @@ input[type=file]{display:none}
 <span class="sep"></span>
 <button onclick="exportJSON()">Export JSON</button>
 <button onclick="exportMD()">Export MD</button>
+<button onclick="exportPDF()">Export PDF</button>
 <button onclick="iaRulesOpen()">Regole Tree</button>
 <button onclick="iaOpen()">IA</button>
 <button onclick="infoOpen()">Info</button>
@@ -301,6 +324,49 @@ function exportMD(){
 
 function cntAll(a){var c=0;for(var i=0;i<a.length;i++){c+=1;if(a[i].c)c+=cntAll(a[i].c)}return c}
 function msg(s){var e=document.getElementById("msg");e.textContent=s;setTimeout(function(){e.textContent=""},3000)}
+
+function pdfNoteHTML(n){
+ var s=String(n==null?"":n).trim();
+ return s?"<div class='pdf-note'>"+s+"</div>":"";
+}
+function pdfSubHTML(node){
+ var h="<div class='pdf-sub'>";
+ h+="<div class='pdf-sub-title'>"+esc(String(node.t==null?"":node.t))+"</div>";
+ h+=pdfNoteHTML(node.n);
+ for(var i=0;i<(node.c||[]).length;i++)h+=pdfSubHTML(node.c[i]);
+ return h+"</div>";
+}
+function pdfCardHTML(node, idx){
+ var colors=["#2d7ff9","#d9534f","#5cb85c","#e67e22","#8e44ad","#16a085","#c0392b","#34495e"];
+ var h="<div class='pdf-card'>";
+ h+="<div class='pdf-card-head' style='background:"+colors[idx%colors.length]+"'>"+esc(String(node.t==null?"":node.t))+"</div>";
+ h+=pdfNoteHTML(node.n);
+ for(var i=0;i<(node.c||[]).length;i++)h+=pdfSubHTML(node.c[i]);
+ return h+"</div>";
+}
+function pdfBuildHTML(){
+ var h="";
+ for(var r=0;r<D.length;r++){
+  var root=D[r];
+  h+="<div class='pdf-head'><h1>"+esc(String(root.t==null?"Tree CRUD":root.t))+"</h1>"+pdfNoteHTML(root.n)+"</div>";
+  var kids=root.c||[];
+  if(kids.length){
+   h+="<div class='pdf-grid'>";
+   for(var i=0;i<kids.length;i++)h+=pdfCardHTML(kids[i],i);
+   h+="</div>";
+  }
+ }
+ return h;
+}
+function exportPDF(){
+ var e=document.getElementById("pdf-view");
+ if(!e){e=document.createElement("div");e.id="pdf-view";document.body.appendChild(e)}
+ e.innerHTML=pdfBuildHTML();
+ var oldTitle=document.title;
+ document.title=jn||"Tree CRUD";
+ window.print();
+ document.title=oldTitle;
+}
 
 load();
 
@@ -817,6 +883,7 @@ function infoClose(){
     </div>
   </div>
 </div>
+<div id="pdf-view"></div>
 
 </body>
 </html>"""
