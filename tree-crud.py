@@ -53,6 +53,10 @@ body.split-drag{cursor:col-resize;user-select:none;-webkit-user-select:none;touc
 .fg label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:4px;text-transform:uppercase}
 .fg input,.fg textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px}
 .fg textarea{min-height:120px;resize:vertical}
+.fg .note-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.fg .note-head label{margin-bottom:0}
+.fg .note-head button{font-size:11px;padding:2px 10px;border:1px solid #ccc;border-radius:4px;background:#f3f3f3;cursor:pointer}
+.fg .notes-render{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-height:120px;max-height:320px;overflow:auto;white-space:pre-wrap;background:#fff;word-break:break-word}
 .fg input:focus,.fg textarea:focus{border-color:#1a1a2e;outline:none}
 ul.tree{list-style:none;padding-left:0}
 ul.tree ul{list-style:none;padding-left:22px}
@@ -95,8 +99,12 @@ input[type=file]{display:none}
 <input id="ename" oninput="onEdit()" placeholder="Nome...">
 </div>
 <div class="fg">
+<div class="note-head">
 <label>Note</label>
+<button type="button" id="enotes-toggle" onclick="noteToggle()">Grafico</button>
+</div>
 <textarea id="enotes" oninput="onEdit()" placeholder="Dettagli, requisiti..." rows="8"></textarea>
+<div id="enotes-view" class="notes-render" hidden></div>
 </div>
 <div style="font-size:12px;color:#999" id="epath"></div>
 </div>
@@ -155,13 +163,28 @@ function sel(id){cur=id;render()}
 function find(a,id){for(var i=0;i<a.length;i++){if(a[i].id==id)return a[i];if(a[i].c){var f=find(a[i].c,id);if(f)return f}}return null}
 function parentOf(a,id,p){for(var i=0;i<a.length;i++){if(a[i].id==id)return p;if(a[i].c){var f=parentOf(a[i].c,id,a[i]);if(f)return f}}return null}
 
+var NOTE_MODE="text";
+function noteToggle(){
+ NOTE_MODE=NOTE_MODE==="text"?"view":"text";
+ var ta=document.getElementById("enotes"),vw=document.getElementById("enotes-view"),bt=document.getElementById("enotes-toggle");
+ if(NOTE_MODE==="view"){
+  var nd=cur!=null?find(D,cur):null;
+  vw.innerHTML=nd?nd.n||"":"";
+  ta.hidden=true;vw.hidden=false;bt.textContent="Testo";
+ }else{
+  ta.hidden=false;vw.hidden=true;bt.textContent="Grafico";
+  ta.focus();
+ }
+}
+
 function showForm(){
- var n=document.getElementById("ename"),no=document.getElementById("enotes"),p=document.getElementById("epath");
- if(!cur){n.value="";no.value="";p.textContent="Seleziona un nodo";n.disabled=true;no.disabled=true;return}
+ var n=document.getElementById("ename"),no=document.getElementById("enotes"),vw=document.getElementById("enotes-view"),p=document.getElementById("epath");
+ if(!cur){n.value="";no.value="";vw.innerHTML="";p.textContent="Seleziona un nodo";n.disabled=true;no.disabled=true;return}
  var nd=find(D,cur);if(!nd){cur=null;showForm();return}
  n.disabled=false;no.disabled=false;
  if(document.activeElement!==n)n.value=nd.t||"";
  if(document.activeElement!==no)no.value=nd.n||"";
+ vw.innerHTML=nd.n||"";
  p.textContent="Percorso: "+path(cur)
 }
 function path(id){
@@ -457,10 +480,10 @@ function iaRenderChoices(list){
     content.className = "ia-content";
     var title = document.createElement("span");
     title.className = "ia-title";
-    title.textContent = s.titolo || "(senza titolo)";
+    title.innerHTML = s.titolo || "(senza titolo)";
     var notes = document.createElement("span");
     notes.className = "ia-notes";
-    notes.textContent = s.note || "";
+    notes.innerHTML = s.note || "";
     content.appendChild(title);
     content.appendChild(notes);
     item.appendChild(chk);
