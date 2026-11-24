@@ -529,13 +529,13 @@ function iaPropose(mode, parent, ref){
   var rel;
   var formato;
   if (mode === "sibling") {
-    formato = JSON.stringify({ categoria: "...", suggerimenti: [{ titolo: "...", note: "..." }] });
+    formato = JSON.stringify({ categoria: "...", suggerimenti: [{ titolo: "...", note: "<b>Argomento</b>: <span style='color:#d9534f'>priorita alta</span>, <span style='color:#5cb85c'>pronto</span>" }] });
     rel = "Contesto: il nodo padre e \"" + parent.t + "\"; i fratelli gia presenti allo stesso livello sono: " + JSON.stringify(existing) + ". Devi proporre nuovi FRATELLI con lo STESSO livello di astrazione e la STESSA categoria tassonomica dei fratelli esistenti. Passo 1: individua la categoria comune dei fratelli esistenti (es. epoche storiche, moduli, pagine, capitoli, sezioni) e scrivila nel campo 'categoria'. Passo 2: proponi SOLO altri elementi mancanti di quella identica categoria. Esempio: se i fratelli sono 'Preistoria', 'Medioevo', 'Evo Contemporaneo', i nuovi suggerimenti devono essere altre epoche (es. 'Evo Antico', 'Evo Moderno'), MAI sotto-argomenti, processi o temi di dettaglio come 'Metallurgia e reti di scambio'. Non riproporre ne duplicare i nomi esistenti. Ogni suggerimento deve essere omogeneo per tipo e granularita con i fratelli esistenti.";
   } else {
-    formato = JSON.stringify({ suggerimenti: [{ titolo: "...", note: "..." }] });
+    formato = JSON.stringify({ suggerimenti: [{ titolo: "...", note: "<b>Argomento</b>: <span style='color:#d9534f'>priorita alta</span>, <span style='color:#5cb85c'>pronto</span>" }] });
     rel = "Proponi almeno 5 possibili FIGLI del nodo \"" + parent.t + "\", coerenti con le note e con granularita uniforme tra loro.";
   }
-  var sys = "Sei un architetto software ed esperto di tassonomie. Ricevi un albero di progetto in JSON con nodi {id,t,n,c} (id numerico, t titolo, n note, c figli). " + rel + " Rispondi SOLO con JSON valido nel formato " + formato + ". Fornisci almeno 3 suggerimenti validi (meglio 5), titoli brevi e note tecniche concise." + (regole ? " REGOLE DEL PROGETTO da rispettare rigorosamente: " + regole : "");
+  var sys = "Sei un architetto software ed esperto di tassonomie. Ricevi un albero di progetto in JSON con nodi {id,t,n,c} (id numerico, t titolo, n note, c figli). " + rel + " Rispondi SOLO con JSON valido nel formato " + formato + ". Fornisci almeno 3 suggerimenti validi (meglio 5), titoli brevi e note tecniche concise. FORMATTAZIONE OBBLIGATORIA DELLE NOTE: le note DEVONO contenere tag HTML, in particolare <span style='color:...'> con virgolette SINGOLE nell'attributo style, per colorare le parole chiave: rosso #d9534f per rischi, verde #5cb85c per vantaggi, arancio #f0ad4e per attenzioni, blu #337ab7 per riferimenti tecnici. Ogni nota deve avere almeno un elemento colorato." + (regole ? " REGOLE DEL PROGETTO da rispettare rigorosamente: " + regole : "");
   var isChat = iaModel() === "deepseek-chat";
   var payload = {
     model: iaModel(),
